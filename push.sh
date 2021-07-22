@@ -23,7 +23,7 @@ function push() {
         docker tag hyperf/hyperf:"${TAG}-${ENGINE}-${VERSION}" hyperf/hyperf:"${TAG}-${ENGINE}-${PPV}"
         docker tag hyperf/hyperf:"${TAG}-${ENGINE}-${VERSION}" hyperf/hyperf:"${TAG}-${ENGINE}"
         if [[ ${CHECK} != "--check" ]]; then
-            echo "Publishing "${TAG}-${ENGINE}" ..."
+            echo "Publishing ${TAG}-${ENGINE} ..."
             docker push hyperf/hyperf:"${TAG}-${ENGINE}"
             docker push hyperf/hyperf:"${TAG}-${ENGINE}-${PV}"
             docker push hyperf/hyperf:"${TAG}-${ENGINE}-${PPV}"
@@ -38,12 +38,12 @@ function check() {
         for TAG in ${TAGS}; do
             REALTAG=${TAG}-${ENGINE}-${VERSION}
             echo "Checking ${REALTAG}"
-            version=`docker run hyperf/hyperf:$REALTAG php -v`
-            echo $version | grep -Eo "PHP \d+\.\d+\.\d+"
+            version=$(docker run "hyperf/hyperf:$REALTAG" php -v)
+            echo "$version" | grep -Eo "PHP \d+\.\d+\.\d+"
             echo "Swoole: "
-            swoole=`docker run hyperf/hyperf:$REALTAG php --ri swoole` && echo $swoole | grep -Eo "Version => \d+\.\d+\.\d+" || echo "No Swoole."
+            swoole=$(docker run "hyperf/hyperf:$REALTAG" php --ri swoole) && echo "$swoole" | grep -Eo "Version => \d+\.\d+\.\d+" || echo "No Swoole."
             echo "Swow: "
-            swow=`docker run hyperf/hyperf:$REALTAG php --ri swow` && echo $swow | grep -Eo "Version => \d+\.\d+\.\d+" || echo "No Swow."
+            swow=$(docker run "hyperf/hyperf:$REALTAG" php --ri swow) && echo "$swow" | grep -Eo "Version => \d+\.\d+\.\d+" || echo "No Swow."
             br
         done
     fi

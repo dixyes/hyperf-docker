@@ -10,15 +10,15 @@ function check_or_push() {
     TAG=${1}
     if [[ ${CHECK} == "--check" ]]; then
         echo "Checking $TAG ..."
-        version=`docker run hyperf/hyperf:$TAG php -v`
-        echo $version | grep -Eo "PHP \d+\.\d+\.\d+"
-        swoole=`docker run hyperf/hyperf:$TAG php --ri swoole` && echo $swoole | grep -Eo "Version => \d+\.\d+\.\d+" || echo "No Swoole."
+        version=$(docker run "hyperf/hyperf:$TAG" php -v)
+        echo "$version" | grep -Eo "PHP \d+\.\d+\.\d+"
+        swoole=$(docker run "hyperf/hyperf:$TAG" php --ri swoole) && echo "$swoole" | grep -Eo "Version => \d+\.\d+\.\d+" || echo "No Swoole."
     fi
 
     if [[ ${CHECK} != "--check" ]]; then
-        echo "Publishing "$TAG" ..."
+        echo "Publishing $TAG ..."
         # Push origin image
-        docker push hyperf/hyperf:${TAG}
+        docker push "hyperf/hyperf:${TAG}"
     fi
 
     echo -e "\n"

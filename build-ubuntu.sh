@@ -4,7 +4,7 @@ set -e
 
 # determine swoole version to build.
 TASK=${1}
-CHECK=${!#}
+#CHECK=${!#}
 
 # build base image
 if [[ ${TASK} == "base" ]]; then
