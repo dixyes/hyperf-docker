@@ -14,6 +14,61 @@ like `hyperf/hyperf:7.4-alpine-3.11-swoole-v4.5.5`
 
 **TODO**: ubuntu support
 
+### Base images
+
+- {7.3,7.4,8.0}-alpine-{3.10,3.11,3.12,3.13,3.14,edge}-base
+- {7.3,7.4,8.0}-alpine-{v3.10,v3.11,v3.12,v3.13,v3.14}-base (for backward compatiable)
+
+[alpine/base/Dockerfile](alpine/base/Dockerfile)
+
+### Swoole images (multi-staged)
+
+- {versions}-alpine-{versions}-swoole-{versions}-builder
+
+[alpine/swoole/Dockerfile.builder](alpine/swoole/Dockerfile.builder)
+
+- {versions}-alpine-{versions}-swoole-{versions}
+
+[alpine/swoole/Dockerfile](alpine/swoole/Dockerfile)
+
+- {versions}-alpine-{versions}-swoole-{versions}-debuggable
+
+[alpine/swoole/Dockerfile.debugable](alpine/swoole/Dockerfile.debugable)
+
+### Swow images (multi-staged)
+
+- {versions}-alpine-{versions}-swow-{versions}-builder
+
+[alpine/swow/Dockerfile.builder](alpine/swow/Dockerfile.builder)
+
+- {versions}-alpine-{versions}-swow-{versions}
+
+[alpine/swow/Dockerfile](alpine/swow/Dockerfile)
+
+- {versions}-alpine-{versions}-swow-{versions}-debuggable
+
+[alpine/swow/Dockerfile.debugable](alpine/swow/Dockerfile.debugable)
+
+## Debuggable images
+
+For Swoole or Swow images, there are "debuggable" varients images, it keeps Swo* sources ( at /usr/src/{swow,swoole} ) and debug symbols in its image.
+
+It will bigger than non-debuggable varients (about +50M typically).
+
+To use it with gdb:
+
+```bash
+apk update
+# asumming you are using 7.3
+apk add gdb php7-dbg~7.3
+# or 8.0
+apk add gdb php8-dbg~8.0
+# you may need fetch php sources by yourself if you want to debug php also.
+# then you can debug things with gdb:
+gdb --args php -r 'echo "hello";'
+gdb attach $(pgrep -o somephp)
+```
+
 ## Quick reference
 
 - [hyperf](https://github.com/hyperf)
