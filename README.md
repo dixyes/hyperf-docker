@@ -76,7 +76,7 @@ gdb attach $(pgrep -o somephp)
 
 ## How to use this image
 
-Added [Dockerfile](https://github.com/hyperf/hyperf-docker/blob/v2/Dockerfile) to your project.
+Added [Dockerfile](Dockerfile) to your project.
 
 ## Info
 
