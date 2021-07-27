@@ -4,11 +4,13 @@
 
 tag format:
 
+like `hyperf/hyperf:7.4-alpine-3.11-swoole-v4.5.5`
+
 - 7.4: php version, support 7.3/7.4/8.0, Recommend 7.4
 - alpine: base images, supoort alpine, recommend alpine
-- v3.11: alpine version, support alpine 3.10/3.11/3.12, recommend 3.12
+- 3.11: alpine version, support alpine 3.10/3.11/3.12, recommend 3.12
 - swoole: support base/dev/swoole/swow
-- v4.5.5: swoole/swow version
+- v4.5.5: swoole/swow version (git revision)
 
 **TODO**: ubuntu support
 
@@ -19,22 +21,65 @@ tag format:
 
 ## How to use this image
 
-Added [Dockerfile](https://github.com/hyperf/hyperf-docker/blob/master/Dockerfile) to your project.
+Added [Dockerfile](https://github.com/hyperf/hyperf-docker/blob/v2/Dockerfile) to your project.
 
 ## Info
 
 Base image contains extensions below:
 
-**TODO**: fill this
-
 ```plain
+[PHP Modules]
+bcmath
+Core
+ctype
+curl
+date
+dom
+filter
+gd
+hash
+iconv
+igbinary
+json
+libxml
+mbstring
+mysqlnd
+openssl
+pcntl
+pcre
+PDO
+pdo_mysql
+pdo_sqlite
+Phar
+posix
+readline
+redis
+Reflection
+session
+SimpleXML
+sockets
+sodium
+SPL
+standard
+sysvmsg
+sysvsem
+sysvshm
+tokenizer
+xml
+xmlreader
+Zend OPcache
+zip
+zlib
+
+[Zend Modules]
+Zend OPcache
 ```
 
 ## more demo
 
 **TODO**: update this part
 
-- kafka
+### kafka
 
 ```dockerfile
 RUN apk add --no-cache librdkafka-dev \
@@ -42,7 +87,7 @@ RUN apk add --no-cache librdkafka-dev \
 && echo "extension=rdkafka.so" > /etc/php7/conf.d/rdkafka.ini
 ```
 
-- aerospike
+### aerospike
 
 ```dockerfile
 # aerospike @see https://github.com/aerospike/aerospike-client-php/issues/24
@@ -63,7 +108,7 @@ RUN git clone https://gitlab.innotechx.com/liyibocheng/aerospike-c-client.git /t
 )
 ```
 
-- mongodb
+### mongodb
 
 ```dockerfile
 RUN apk add --no-cache openssl-dev \
@@ -71,7 +116,7 @@ RUN apk add --no-cache openssl-dev \
 && echo "extension=mongodb.so" > /etc/php7/conf.d/mongodb.ini
 ```
 
-- protobuf
+### protobuf
 
 ```dockerfile
 # mac protobuf: https://blog.csdn.net/JoeBlackzqq/article/details/83118248
@@ -81,7 +126,7 @@ RUN apk add --no-cache protobuf \
 && echo "extension=protobuf.so" > /etc/php7/conf.d/protobuf.ini
 ```
 
--  swoole tracker
+### swoole tracker
 
 ```dockerfile
 # download swoole tracker
@@ -102,7 +147,9 @@ RUN chmod +x /tmp/swoole-tracker-install.sh \
 && chmod 755 /opt/swoole/entrypoint.sh
 ```
 
-- fix aliyun oss wrong charset
+NOTE: swoole-tracker may need container have proper capabilities and secure options to work well, consult user manual for detail
+
+### fix aliyun oss wrong charset
 
 ```dockerfile
 # fix aliyun oss wrong charset: https://github.com/aliyun/aliyun-oss-php-sdk/issues/101
