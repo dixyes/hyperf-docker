@@ -5,13 +5,14 @@
 # @contact  group@hyperf.io
 # @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
 
+ARG IMAGE_NAME
 ARG ALPINE_VERSION
 ARG PHP_VERSION
 ARG SWOOLE_VERSION
 
-FROM hyperf/hyperf:${PHP_VERSION}-alpine-${ALPINE_VERSION}-swoole-${SWOOLE_VERSION}-builder as builder
+FROM ${IMAGE_NAME}:${PHP_VERSION}-alpine-${ALPINE_VERSION}-swoole-${SWOOLE_VERSION}-builder as builder
 
-FROM hyperf/hyperf:${PHP_VERSION}-alpine-${ALPINE_VERSION}-base
+FROM ${IMAGE_NAME}:${PHP_VERSION}-alpine-${ALPINE_VERSION}-base
 
 LABEL maintainer="Hyperf Developers <group@hyperf.io>" version="2.0" license="MIT"
 

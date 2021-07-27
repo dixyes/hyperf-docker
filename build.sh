@@ -59,7 +59,7 @@ buildext()
     local os_name=${target%%/*}
     local ext_name=${target##*/}
     shift
-    local merged_args=()
+    local merged_args=("--build-arg" "IMAGE_NAME=${IMAGE_NAME}")
     local arg; for arg in "$@"
     do
         merged_args+=("--build-arg" "$arg")
