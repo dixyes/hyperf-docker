@@ -39,9 +39,12 @@ RUN set -eo pipefail ; \
     else \
         alpinever="v${ALPINE_VERSION}"; \
     fi ; \
-    echo "https://media.githubusercontent.com/media/dixyes/alpine-php-altver-storage/latest/${alpinever}/phpaltver" >> /etc/apk/repositories && \
+    echo  >> /etc/apk/repositories && \
+    # add phpaltver as marked repo first
     echo "@phpaltver https://media.githubusercontent.com/media/dixyes/alpine-php-altver-storage/latest/${alpinever}/phpaltver" >> /etc/apk/repositories && \
     apk add --no-cache \
+        # use phpaltver as both common and marked to install any version of php via ~version
+        --repository "https://media.githubusercontent.com/media/dixyes/alpine-php-altver-storage/latest/${alpinever}/phpaltver" \
         # Install base packages ('ca-certificates' will install 'nghttp2-libs')
         ca-certificates \
         curl \
@@ -86,8 +89,11 @@ RUN set -eo pipefail ; \
     && \
     # pecl extensions (igbinary is dependency for redis)
     apk add --no-cache \
+        # do not use phpaltver as common repo to choose pecl from
         php${suffix}-pecl-igbinary${usealtver} \
-        php${suffix}-pecl-redis${usealtver}; \
+        php${suffix}-pecl-redis${usealtver} && \
+    # add phpaltver as common repo then
+    echo "https://media.githubusercontent.com/media/dixyes/alpine-php-altver-storage/latest/${alpinever}/phpaltver" >> /etc/apk/repositories && \
     ln -sf /usr/bin/php${suffix} /usr/bin/php && \
     rm -rf /var/cache/apk/* /tmp/* && \
     printf "\033[42;37m PHP version is \033[0m\n" && \
