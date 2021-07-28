@@ -36,7 +36,7 @@ buildbase()
         merged_args+=("--build-arg" "$arg")
         local k=${arg%%=*}
         local v=${arg#*=}
-        [ "$k" = "ALPINE_VERSION" ] && os_version="$v"
+        [ "$k" = "ALPINE_VERSION" ] && os_version="${v##v}"
         [ "$k" = "UBUNTU_VERSION" ] && os_version="$v"
         [ "$k" = "PHP_VERSION" ] && php_version="$v"
     done
@@ -44,8 +44,17 @@ buildbase()
     : ${os_version:?ALPINE_VERSION or UBUNTU_VERSION must be set}
     : ${php_version:?PHP_VERSION must be set}
 
+    # for backward compatiable
+    local alttag=()
+    if  [ "$os_name" = "alpine" ] &&
+        [ "$os_version" != "edge" ]
+    then
+        alttag=("-t" "${IMAGE_NAME}:${php_version}-${os_name}-v${os_version}-base")
+    fi
+
     docker build "$script_dir/$target" \
         -t "${IMAGE_NAME}:${php_version}-${os_name}-${os_version}-base" \
+        "${alttag[@]}" \
         "${merged_args[@]}"
     # TODO: alias it
 }
@@ -65,7 +74,7 @@ buildext()
         merged_args+=("--build-arg" "$arg")
         local k=${arg%%=*}
         local v=${arg#*=}
-        [ "$k" = "ALPINE_VERSION" ] && os_version="$v"
+        [ "$k" = "ALPINE_VERSION" ] && os_version="${v##v}"
         [ "$k" = "UBUNTU_VERSION" ] && os_version="$v"
         [ "$k" = "PHP_VERSION" ] && php_version="$v"
         [ "$k" = "SWOOLE_VERSION" ] && ext_version="$v"
@@ -75,19 +84,26 @@ buildext()
     : ${os_version:?ALPINE_VERSION or UBUNTU_VERSION must be set}
     : ${php_version:?PHP_VERSION must be set}
 
+    # for backward compatiable
+    local alttagext=()
+    if  [ "$os_name" = "alpine" ] &&
+        [ "$os_version" != "edge" ]
+    then
+        alttagext=("-t" "${IMAGE_NAME}:${php_version}-${os_name}-v${os_version}-${ext_name}-${ext_version}")
+    fi
+
     docker build "$script_dir/$target" \
         -f "$script_dir/$target/Dockerfile.builder" \
         -t "${IMAGE_NAME}:${php_version}-${os_name}-${os_version}-${ext_name}-${ext_version}-builder" \
         "${merged_args[@]}"
     docker build "$script_dir/$target" \
         -t "${IMAGE_NAME}:${php_version}-${os_name}-${os_version}-${ext_name}-${ext_version}" \
+        "${alttagext[@]}" \
         "${merged_args[@]}"
-    # TODO: alias it
     docker build "$script_dir/$target" \
         -f "$script_dir/$target/Dockerfile.debuggable" \
         -t "${IMAGE_NAME}:${php_version}-${os_name}-${os_version}-${ext_name}-${ext_version}-debuggable" \
         "${merged_args[@]}"
-    # TODO: alias it
 }
 
 build()

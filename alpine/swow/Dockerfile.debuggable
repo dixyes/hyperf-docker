@@ -5,6 +5,7 @@
 # @contact  group@hyperf.io
 # @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
 
+ARG IMAGE_NAME
 ARG ALPINE_VERSION
 ARG PHP_VERSION
 ARG SWOW_VERSION
