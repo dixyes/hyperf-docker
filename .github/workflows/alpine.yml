@@ -1,0 +1,172 @@
+name: Alpine images
+
+on:
+  #schedule:
+  #  cron:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: build targets, in json array format, allow base,swoole and swow
+        required: true
+        default: '["base"]'
+      upload:
+        description: upload built images, "true" or "false"
+        required: true
+        default: 'false'
+      alpine:
+        description: alpine versions to build, in json array format
+        required: true
+        default: '["edge"]'
+      php:
+        description: php versions to build, in json array format
+        required: true
+        default: '["8.0"]'
+      swoole:
+        description: swoole versions to build, in json array format
+        required: true
+        default: '["v4.7.0"]'
+      swow:
+        description: swow versions to build, in json array format
+        required: true
+        default: '["develop"]'
+
+env:
+  IMAGE_NAME: hyperf/hyperf
+
+jobs:
+  prepare:
+    name: Prepare informations to build
+    runs-on: 'ubuntu-latest'
+    outputs:
+      alpine: ${{steps.prepare.outputs.alpine}}
+      php: ${{steps.prepare.outputs.php}}
+      swoole: ${{steps.prepare.outputs.swoole}}
+      swow: ${{steps.prepare.outputs.swow}}
+      runbase: ${{steps.prepare.outputs.runbase}}
+      runswoole: ${{steps.prepare.outputs.runswoole}}
+      runswow: ${{steps.prepare.outputs.runswow}}
+    steps:
+      - name: Generate tasklists from build_all.sh
+        shell: php {0}
+        id: prepare
+        run: |
+          <?php
+          $inputs=json_decode('${{github.event.inputs && toJSON(github.event.inputs) || '{}'}}', true);
+          array_map(function($e){
+            echo "::set-output name=run$e::true\n";
+          },json_decode($inputs["targets"]?:'["base","swoole","swow"]', true));
+          unset($inputs["targets"]);
+          unset($inputs["upload"]);
+          if( "workflow_dispatch" === "${{github.event_name}}" ){
+            foreach($inputs as $k => $v){
+              echo "::set-output name=$k::$v\n";
+            }
+            exit(0);
+          }
+          $build_all=file_get_contents("https://github.com/${{github.repository}}/raw/v2/build_all.sh");
+          $re="|(?<!#)[\t\v ]*local SUPPORTED_%s=\(([^)]+)\)|";
+          $vars=["alpine", "php", "swoole", "swow"];
+          $data=[];
+          foreach($vars as $var){
+              if(0 === preg_match(sprintf($re, strtoupper($var)), $build_all, $matches)){
+                  echo "Bad build_all.sh, no SUPPORTED_$var found.\n";
+                  exit(1);
+              }
+              echo "::set-output name=$var::" . json_encode(preg_split("|\s+|", $matches[1])) . "\n";
+          }
+  base:
+    if: needs.prepare.outputs.runbase
+    name: '${{matrix.php}}-alpine-${{matrix.alpine}}-base'
+    needs:
+      - prepare
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        alpine: ${{fromJSON(needs.prepare.outputs.alpine)}}
+        php: ${{fromJSON(needs.prepare.outputs.php)}}
+      max-parallel: 6
+    steps:
+      - name: Checkout self
+        uses: actions/checkout@v2
+      - name: Build image ${{matrix.php}}-alpine-${{matrix.alpine}}-base
+        shell: bash
+        run: |
+          ./build.sh alpine/base ALPINE_VERSION=${{matrix.alpine}} PHP_VERSION=${{matrix.php}}
+      - name: Upload built image
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload == 'true' }}
+        shell: bash
+        run: |
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_ACCESSTOKEN }}
+          docker push ${{env.IMAGE_NAME}}:${{matrix.php}}-alpine-${{matrix.alpine}}-base
+          if [ 'edge' != '${{matrix.alpine}}' ]
+          then
+            docker push ${{env.IMAGE_NAME}}:${{matrix.php}}-alpine-v${{matrix.alpine}}-base
+          fi
+  swoole:
+    if: needs.prepare.outputs.runswoole
+    name: '${{matrix.php}}-alpine-${{matrix.alpine}}-swoole-${{matrix.swoole}}'
+    needs:
+      - prepare
+      # when base done, all base images is updated
+      - base
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        alpine: ${{fromJSON(needs.prepare.outputs.alpine)}}
+        php: ${{fromJSON(needs.prepare.outputs.php)}}
+        swoole: ${{fromJSON(needs.prepare.outputs.swoole)}}
+      max-parallel: 3
+    steps:
+      - name: Checkout self
+        uses: actions/checkout@v2
+      - name: Build image ${{matrix.php}}-alpine-${{matrix.alpine}}-swoole-${{matrix.swoole}}
+        shell: bash
+        run: |
+          ./build.sh alpine/swoole ALPINE_VERSION=${{matrix.alpine}} PHP_VERSION=${{matrix.php}} SWOOLE_VERSION=${{matrix.swoole}}
+      - name: Upload built image
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload == 'true' }}
+        shell: bash
+        run: |
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_ACCESSTOKEN }}
+          docker push ${{env.IMAGE_NAME}}:${{matrix.php}}-alpine-${{matrix.alpine}}-swoole-${{matrix.swoole}}
+          docker push ${{env.IMAGE_NAME}}:${{matrix.php}}-alpine-${{matrix.alpine}}-swoole-${{matrix.swoole}}-debuggable
+          if [ 'edge' != '${{matrix.alpine}}' ]
+          then
+            docker push ${{env.IMAGE_NAME}}:${{matrix.php}}-alpine-v${{matrix.alpine}}-swoole-${{matrix.swoole}}
+          fi
+  swow:
+    if: needs.prepare.outputs.runswow
+    name: '${{matrix.php}}-alpine-${{matrix.alpine}}-swow-${{matrix.swow}}'
+    needs:
+      - prepare
+      # when base done, all base images is updated
+      - base
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        alpine: ${{fromJSON(needs.prepare.outputs.alpine)}}
+        php: ${{fromJSON(needs.prepare.outputs.php)}}
+        swow: ${{fromJSON(needs.prepare.outputs.swow)}}
+      max-parallel: 3
+    steps:
+      - name: Checkout self
+        uses: actions/checkout@v2
+      - name: Build image ${{matrix.php}}-alpine-${{matrix.alpine}}-swow-${{matrix.swow}}
+        shell: bash
+        run: |
+          ./build.sh alpine/swow ALPINE_VERSION=${{matrix.alpine}} PHP_VERSION=${{matrix.php}} SWOW_VERSION=${{matrix.swow}}
+      - name: Upload built image
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload == 'true' }}
+        shell: bash
+        run: |
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_ACCESSTOKEN }}
+          docker push ${{env.IMAGE_NAME}}:${{matrix.php}}-alpine-${{matrix.alpine}}-swow-${{matrix.swow}}
+          docker push ${{env.IMAGE_NAME}}:${{matrix.php}}-alpine-${{matrix.alpine}}-swow-${{matrix.swow}}-debuggable
+          if [ 'edge' != '${{matrix.alpine}}' ]
+          then
+            docker push ${{env.IMAGE_NAME}}:${{matrix.php}}-alpine-v${{matrix.alpine}}-swow-${{matrix.swow}}
+          fi
+
