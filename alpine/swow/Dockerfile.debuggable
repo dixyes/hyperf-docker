@@ -31,7 +31,6 @@ RUN set -eo pipefail ; \
     apk add --no-cache \
         libstdc++ \
         zlib \
-        brotli-libs \
         openssl \
     && \
     # generate configure

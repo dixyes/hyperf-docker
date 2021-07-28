@@ -27,10 +27,11 @@ COPY --from=builder /tmp/stripped /
 RUN set -eo pipefail ; \
     suffix=${PHP_VERSION%%.*}; \
     # runtime libraries
+    [ "${ALPINE_VERSION##*.}" -gt 11 ] && use_brlibs="-libs"; \
     apk add --no-cache \
         libstdc++ \
         zlib \
-        brotli-libs \
+        "brotli${use_brlibs}" \
         openssl \
     && \
     # generate configure
