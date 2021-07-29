@@ -96,6 +96,8 @@ RUN set -eo pipefail ; \
     echo "https://media.githubusercontent.com/media/dixyes/alpine-php-altver-storage/latest/${alpinever}/phpaltver" >> /etc/apk/repositories && \
     ln -sf /usr/bin/php${suffix} /usr/bin/php && \
     rm -rf /var/cache/apk/* /tmp/* && \
+    # validate extensions loading
+    { [ x$(php -r '' 2>&1) = "x" ] || exit 1; } && \
     printf "\033[42;37m PHP version is \033[0m\n" && \
     php -v && \
     printf "\033[42;37m PHP modules are \033[0m\n" && \

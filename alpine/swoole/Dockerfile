@@ -46,6 +46,8 @@ RUN set -eo pipefail ; \
         curl -fSL 'https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar' -o /usr/local/bin/composer; \
     fi && \
     chmod 0755 /usr/local/bin/composer && \
+    # validate extensions loading
+    { [ x$(php -r 'var_dump(class_exists("\Swoole\Coroutine"));' 2>&1) = "xbool(true)" ] || exit 1; } && \
     # php info
     printf "\033[42;37m PHP version is \033[0m\n" && \
     php -v && \
