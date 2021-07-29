@@ -31,7 +31,7 @@ on:
         default: '["develop"]'
 
 env:
-  IMAGE_NAME: hyperf/hyperf
+  IMAGE_NAME: dixyes/hyperf
 
 jobs:
   prepare:
